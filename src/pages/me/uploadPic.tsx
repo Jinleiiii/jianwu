@@ -15,16 +15,21 @@ export const UploadPic: React.FC<any> = ({
   fileChange,
 }) => {
   const _accessoryFileList: any[] = [...fileList] // 后端用图片格式 arr
-
+  const [tempImages, setTempImages] = useState([])
   const onChange = (files, doType, index) => {
     if (doType === 'add') {
       // add file
+      setTempImages(files)
       const waitingUploadFiles = files.filter(f => !(f.url.includes('oss/')))
-      uploadFile({ path: waitingUploadFiles });
+      console.log(files)
+      // uploadFile({ path: waitingUploadFiles });
     } else {
       // remove file
       _accessoryFileList.splice(index, 1)
       _fileChange(_accessoryFileList);
+      const newTempImages = [...tempImages]
+      newTempImages.splice(index, 1)
+      setTempImages(newTempImages)
     }
   };
 
@@ -108,7 +113,7 @@ export const UploadPic: React.FC<any> = ({
         multiple
         length={3}
         count={9}
-        files={fileList}
+        files={tempImages}
         onImageClick={(i) => previewAble && PreviewImage(i, fileList)}
         onChange={onChange}
         showAddBtn={fileList.length < maxNumber}
