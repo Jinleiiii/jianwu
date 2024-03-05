@@ -18,8 +18,9 @@ export default class Index extends Component {
 
   render () {
     return (
-  <View>
-     <Swiper indicatorDots indicatorActiveColor = '#999'  style={{width: '90%', height:'200px', margin:'0 auto'}}>
+    <View className='content'>
+      <View>
+          <Swiper indicatorDots indicatorActiveColor = '#999'  style={{width: '90%', height:'200px', margin:'0 auto'}}>
        <SwiperItem className='swiper-item'>
         <Image src={swiperWelcome} className='swiper-image'></Image>
       </SwiperItem>
@@ -30,8 +31,11 @@ export default class Index extends Component {
         <Image src={swiperHelmet} className='swiper-image'></Image>
       </SwiperItem>
     </Swiper>
-    {/* <CateContent /> */}
-  </View>
+      </View>
+      <View>
+        <CateContent />
+      </View>
+    </View>
   )
   }
 }

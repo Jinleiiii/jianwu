@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
-import Taro from '@tarojs/taro'
+import {AtImagePicker, AtInput, AtButton, AtModal, AtModalHeader, AtModalContent, AtModalAction} from 'taro-ui'
 import {View} from '@tarojs/components'
+import React, { useEffect, useState } from 'react'
+import Taro from '@tarojs/taro'
 import isFunction from 'lodash/isFunction'
 import { PreviewImage } from './previewImage';
-import {AtImagePicker, AtButton, AtModalAction, AtInput} from 'taro-ui'
-
 import { BaseUrl } from '../../config';
 
 interface ImageInfo {
@@ -22,6 +21,8 @@ export const UploadPic: React.FC<any> = ({
   interfaceName = '',
   fileChange,
   setIsModalOpen,
+  categoryid,
+  catename
 }) => {
   const _accessoryFileList: any[] = [...fileList] // 后端用图片格式 arr
   const [tempImages, setTempImages] = useState([])
@@ -43,6 +44,11 @@ export const UploadPic: React.FC<any> = ({
       setTempImages(newTempImages)
     }
   };
+  
+  useEffect(() => {
+    setForm({ name: catename });
+  }, [catename]);
+  
 
   const compressImages = (imageUrls: ImageInfo[]): Promise<string[]> => {
     const compressPromises = imageUrls.map((image) => {
@@ -60,8 +66,8 @@ export const UploadPic: React.FC<any> = ({
     return Promise.all(compressPromises);
   };
 
-  const uploadFile = (data, additionalData) => {
-    console.log(data, additionalData);
+  const uploadFile = (data, namedata, categoryid) => {
+    console.log(data, namedata);
     
     if (!data.urls || !data.urls[data.i]) {
       Taro.showToast({
@@ -72,7 +78,7 @@ export const UploadPic: React.FC<any> = ({
       return; // 中断执行
     }
 
-    if (!additionalData || Object.keys(additionalData).length === 0) {
+    if (!namedata || Object.keys(namedata).length === 0) {
       Taro.showToast({
         title: '缺少必要的名称，无法上传',
         icon: 'none',
@@ -96,13 +102,14 @@ export const UploadPic: React.FC<any> = ({
       name: 'photos',
       filePath: data.urls[data.i],
       formData: {
-        ...additionalData, // 这里传入所有额外的数据
+        ...namedata,
+        'categoryid': categoryid
       },
       success: (res) => {
         //图片上传成功，图片上传成功的变量+1     
         console.log(res);
 
-        if (res.statusCode === 201) {
+        if (res.statusCode === 200) {
           
           data.success++;
           Taro.showToast({
@@ -194,7 +201,7 @@ export const UploadPic: React.FC<any> = ({
             _fileChange(_accessoryFileList);
             console.log('----------------_accessoryFileList', _accessoryFileList)
             Taro.showToast({
-              title: '上传完成',
+              title: '更新完成',
               icon: 'success',
               duration: 2000
             });
@@ -203,7 +210,7 @@ export const UploadPic: React.FC<any> = ({
               name: '',
             });
           } else {//若图片还没有传完，则继续调用函数
-            uploadFile(data, form);
+            uploadFile(data, form, categoryid);
           }
         }
       }  
@@ -224,13 +231,13 @@ export const UploadPic: React.FC<any> = ({
   const handleInputSubmit = () => {
     setIsModalOpen(false);
     compressImages(tempImages).then((compressedImageUrls) => {      
-      uploadFile({urls:compressedImageUrls, i:0, success:0, fail:0}, form);
+      uploadFile({urls:compressedImageUrls, i:0, success:0, fail:0}, form, categoryid);
     }).catch((error) => {
       console.error('压缩图片过程中出错:', error);
     });
 
   }
-
+  
   return (
     <View>
       <AtInput name='name'
@@ -255,4 +262,30 @@ export const UploadPic: React.FC<any> = ({
       </AtModalAction>
     </View>
   );
+}
+
+export default function PatchCate ({isAddModal, setIsAddModal, categoryid, catename}) {
+  const [pics, setPics] = useState([]);
+  
+  return (
+    <View>
+      <AtModal isOpened={isAddModal}>
+        <AtModalHeader>编辑分类</AtModalHeader>
+        <AtModalContent>
+          <UploadPic
+            maxNumber={3}
+            fileList={pics}
+            interfaceName='patchcate'
+            fileChange={(e) => {
+              console.log('e', e)
+              setPics(e)
+            }}
+            setIsModalOpen={setIsAddModal}
+            categoryid={categoryid}
+            catename={catename}
+          />  
+        </AtModalContent>
+      </AtModal>
+    </View>
+  )
 }

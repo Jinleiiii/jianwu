@@ -1,10 +1,9 @@
-import React, { useState } from 'react'
-import Taro from '@tarojs/taro'
+import {AtImagePicker, AtInput, AtButton, AtModal, AtModalHeader, AtModalContent, AtModalAction} from 'taro-ui'
 import {View} from '@tarojs/components'
+import React, { useEffect, useState } from 'react'
+import Taro from '@tarojs/taro'
 import isFunction from 'lodash/isFunction'
 import { PreviewImage } from './previewImage';
-import {AtImagePicker, AtButton, AtModalAction, AtInput} from 'taro-ui'
-
 import { BaseUrl } from '../../config';
 
 interface ImageInfo {
@@ -22,6 +21,7 @@ export const UploadPic: React.FC<any> = ({
   interfaceName = '',
   fileChange,
   setIsModalOpen,
+  catename
 }) => {
   const _accessoryFileList: any[] = [...fileList] // 后端用图片格式 arr
   const [tempImages, setTempImages] = useState([])
@@ -43,6 +43,11 @@ export const UploadPic: React.FC<any> = ({
       setTempImages(newTempImages)
     }
   };
+  
+  useEffect(() => {
+    setForm({ name: catename });
+  }, [catename]);
+  
 
   const compressImages = (imageUrls: ImageInfo[]): Promise<string[]> => {
     const compressPromises = imageUrls.map((image) => {
@@ -60,8 +65,8 @@ export const UploadPic: React.FC<any> = ({
     return Promise.all(compressPromises);
   };
 
-  const uploadFile = (data, additionalData) => {
-    console.log(data, additionalData);
+  const uploadFile = (data, namedata) => {
+    console.log(data, namedata);
     
     if (!data.urls || !data.urls[data.i]) {
       Taro.showToast({
@@ -72,7 +77,7 @@ export const UploadPic: React.FC<any> = ({
       return; // 中断执行
     }
 
-    if (!additionalData || Object.keys(additionalData).length === 0) {
+    if (!namedata || Object.keys(namedata).length === 0) {
       Taro.showToast({
         title: '缺少必要的名称，无法上传',
         icon: 'none',
@@ -96,7 +101,7 @@ export const UploadPic: React.FC<any> = ({
       name: 'photos',
       filePath: data.urls[data.i],
       formData: {
-        ...additionalData, // 这里传入所有额外的数据
+        ...namedata,
       },
       success: (res) => {
         //图片上传成功，图片上传成功的变量+1     
@@ -194,7 +199,7 @@ export const UploadPic: React.FC<any> = ({
             _fileChange(_accessoryFileList);
             console.log('----------------_accessoryFileList', _accessoryFileList)
             Taro.showToast({
-              title: '上传完成',
+              title: '更新完成',
               icon: 'success',
               duration: 2000
             });
@@ -228,15 +233,14 @@ export const UploadPic: React.FC<any> = ({
     }).catch((error) => {
       console.error('压缩图片过程中出错:', error);
     });
-
   }
-
+  
   return (
     <View>
       <AtInput name='name'
-            title='分类名称'
+            title='商品名称'
             type='text'
-            placeholder='请输入分类名称'
+            placeholder='请输入商品名称'
             value={form.name}
             onChange={(value) => handleInputChange(value, 'name')}>
       </AtInput>
@@ -255,4 +259,28 @@ export const UploadPic: React.FC<any> = ({
       </AtModalAction>
     </View>
   );
+}
+
+export default function PostItem ({isAddModal, setIsAddModal, categoryid}) {
+  const [pics, setPics] = useState([]);
+  
+  return (
+    <View>
+      <AtModal isOpened={isAddModal}>
+        <AtModalHeader>编辑分类</AtModalHeader>
+        <AtModalContent>
+          <UploadPic
+            maxNumber={3}
+            fileList={pics}
+            interfaceName = {`categories/${categoryid}`}
+            fileChange={(e) => {
+              console.log('e', e)
+              setPics(e)
+            }}
+            setIsModalOpen={setIsAddModal}
+          />  
+        </AtModalContent>
+      </AtModal>
+    </View>
+  )
 }

@@ -1,0 +1,21 @@
+.grid-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.grid-item {
+  width: 49%; /* for two items per row */
+  margin-bottom: 10px; /* space between rows */
+}
+
+.grid-item-image {
+  width: 100%;
+  aspect-ratio: 1; /* square images */
+}
+
+.grid-item-text {
+  display: block;
+  text-align: center;
+  margin-top: 4px;
+}
