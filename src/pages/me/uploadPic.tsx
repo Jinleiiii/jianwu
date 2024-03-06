@@ -62,6 +62,7 @@ export const UploadPic: React.FC<any> = ({
 
   const uploadFile = (data, additionalData) => {
     console.log(data, additionalData);
+    let shouldContinueUploading = true;
     
     if (!data.urls || !data.urls[data.i]) {
       Taro.showToast({
@@ -79,9 +80,7 @@ export const UploadPic: React.FC<any> = ({
         duration: 2000
       });
       return; // 中断执行
-    }
-    let shouldContinueUploading = true;
-    
+    }    
     Taro.showLoading({
       title: `正在上传第${data.i + 1}张`
     })
@@ -103,7 +102,6 @@ export const UploadPic: React.FC<any> = ({
         console.log(res);
 
         if (res.statusCode === 201) {
-          
           data.success++;
           Taro.showToast({
             title: '上传成功',
@@ -132,32 +130,32 @@ export const UploadPic: React.FC<any> = ({
           setForm({
             name: '',
           });
-      } else if (res.statusCode === 401) {
-        data.fail++;
-          Taro.showToast({
-            title: '请重新登录',
-            icon: 'none',
-            duration: 2000
-        });
-        Taro.switchTab({url: '/pages/me/index'})
-        shouldContinueUploading = false;
-        setTempImages([]);
-        setForm({
-          name: '',
-        });
-      } else if (res.statusCode === 413) {
+        } else if (res.statusCode === 401) {
           data.fail++;
-          Taro.showToast({
-            title: '传入图片过大（需小于5MB）',
-            icon: 'none',
-            duration: 2000
-        });
-        shouldContinueUploading = false;
-        setTempImages([]);
-        setForm({
-          name: '',
-        });
-      } else {
+            Taro.showToast({
+              title: '请重新登录',
+              icon: 'none',
+              duration: 2000
+          });
+          Taro.switchTab({url: '/pages/me/index'})
+          shouldContinueUploading = false;
+          setTempImages([]);
+          setForm({
+            name: '',
+          });
+        } else if (res.statusCode === 413) {
+            data.fail++;
+            Taro.showToast({
+              title: '传入图片过大（需小于5MB）',
+              icon: 'none',
+              duration: 2000
+          });
+          shouldContinueUploading = false;
+          setTempImages([]);
+          setForm({
+            name: '',
+          });
+        } else {
         data.fail++;
           Taro.showToast({
             title: '上传错误，请稍后重试',
@@ -165,11 +163,6 @@ export const UploadPic: React.FC<any> = ({
             duration: 2000
           });
         }
-        shouldContinueUploading = false;
-        setTempImages([]);
-        setForm({
-          name: '',
-        });
       },
       fail: (res) => {
         data.fail++;//图片上传失败，图片上传失败的变量+1
@@ -186,9 +179,13 @@ export const UploadPic: React.FC<any> = ({
         });
       },
       complete: () => {
+        
         Taro.hideLoading()
+        console.log(shouldContinueUploading);
         if (shouldContinueUploading){
           data.i++;//这个图片执行完上传后，开始上传下一张
+          console.log(data);
+
           if (data.i == data.urls.length) {   //当图片传完时，停止调用
             console.log('成功：' + data.success + " 失败：" + data.fail);
             _fileChange(_accessoryFileList);
@@ -203,6 +200,7 @@ export const UploadPic: React.FC<any> = ({
               name: '',
             });
           } else {//若图片还没有传完，则继续调用函数
+            
             uploadFile(data, form);
           }
         }
